@@ -1,51 +1,46 @@
 # Rift Roster
 
-A team balancer for casual League of Legends lobbies. Given 10 of a 12–15 player
-pool, the **Summoner Split** engine enumerates all 126 unique 5v5 splits and
-returns the fairest one — accounting for rank, current form, role fit, and known
-duo/tilt pairs.
+A team balancer for casual League of Legends lobbies. Given 10 of a 12–15 player pool, the **Summoner Split** engine enumerates all 126 unique 5v5 splits and returns the fairest one — accounting for rank, current form, role fit, and known duo/tilt pairs. The organizer publishes the result as a **read-only link** so the whole group can see the teams before lobbying up.
 
 See [`docs/`](docs/) for the PRD, TDD, and Roadmap.
 
 ## Stack
 
-Deliberately minimal, because "open one file, works offline" is the whole point.
+A hosted app with a deliberately minimal backend — the interesting part (the engine) stays client-side and pure.
 
-- **Product:** a single self-contained `team-balancer.html` — vanilla HTML/CSS/JS,
-  no framework, no backend, no runtime dependencies, no network.
-- **Engine source of truth:** [`src/engine.mjs`](src/engine.mjs) — pure, DOM-free
-  functions, so the model can be unit-tested in isolation.
-- **Tests:** Node's built-in runner (`node --test`) — zero dependencies, no install.
-- **Build:** [`build.mjs`](build.mjs) — a dev-only ~20-line inliner that folds
-  `src/engine.mjs` into `team-balancer.html`. Never runs in the browser. Drop it
-  if you want literally zero tooling and hand-inline instead.
+- **Host/UI:** Next.js (App Router) + React + TypeScript, deployed on Vercel.
+- **Engine:** pure, framework-free TypeScript in `src/engine/` — unit-tested in isolation.
+- **Storage:** a KV store (Vercel KV / Upstash) holding published snapshot blobs keyed by slug. No accounts, no relational schema.
+- **Sharing:** organizer publishes (gated by a single `PUBLISH_SECRET`) → gets `/v/<slug>`; anyone with the link views read-only, no login.
+- **Tests:** Vitest.
 
-Requires Node 18+ (for `node --test`). Nothing to `npm install`.
+> **Retired:** the original design shipped as a single offline HTML file with no backend. That constraint was dropped to allow shared read-only links — see PRD §4 (Not a goal: single offline file) and the [CHANGELOG](docs/CHANGELOG.md) for the reasoning.
 
-## Layout
+## Status
+
+**Mid-migration.** The engine model and its tests exist from the original vanilla scaffold (`src/engine.mjs`, `test/`, `team-balancer.html`); the Next.js host, publish API, and read-only view are the current work item (Roadmap v1.5). Docs are updated to the target architecture ahead of the code.
+
+## Layout (target)
 
 ```
-team-balancer.html   the shippable single file (engine gets inlined here)
-src/engine.mjs       Summoner Split engine — tested source of truth
-test/engine.test.mjs unit tests (node --test)
-build.mjs            inlines the engine into the HTML
-sample-roster.json   a 10-in sample lobby ({ players, pairs } schema)
+src/
+  engine/            Summoner Split engine — pure, framework-free, tested
+  app/               Next.js routes: organizer UI, /api/publish, /v/[slug] view
+  components/        React UI (roster table, controls, results, meter)
+  state/             roster store + localStorage sync
+test/                Vitest engine tests
 docs/                PRD · TDD · Roadmap
 ```
 
 ## Develop
 
 ```sh
-node --test        # run the engine tests
-node build.mjs      # inline engine.mjs -> team-balancer.html
-open team-balancer.html
+# current scaffold
+node --test          # run the engine tests
+
+# after the Next.js migration
+npm run dev          # local dev server
+npm run test         # vitest
 ```
 
-## Status
-
-Scaffold. Engine constants, `effScore`, and `kCombos` are implemented and tested;
-`roleFit` / `spreadPenalty` / `scoreSplit` / `balance` and the UI layer are next.
-
-> Note: the split-top-2 constraint must skip a split when the two strongest
-> players share a team (both in the combo **or** both out) — TDD §4's pseudocode
-> only checks one side. Tracked as finding #1 from the docs review.
+Requires Node 18+.
