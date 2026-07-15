@@ -18,7 +18,7 @@ A hosted app with a deliberately minimal backend — the interesting part (the e
 
 ## Status
 
-**Mid-migration.** The engine model and its tests exist from the original vanilla scaffold (`src/engine.mjs`, `test/`, `team-balancer.html`); the Next.js host, publish API, and read-only view are the current work item (Roadmap v1.5). Docs are updated to the target architecture ahead of the code.
+**Mid-migration.** The Next.js host and TypeScript/Vitest toolchain are scaffolded, and the retired single-file delivery wrapper is gone. The engine still lives in `src/engine.mjs` with its Node tests; porting it to TypeScript is next. The organizer UI, publish API, and read-only view remain Roadmap v1.5 work.
 
 ## Layout (target)
 
@@ -35,12 +35,11 @@ docs/                PRD · TDD · Roadmap
 ## Develop
 
 ```sh
-# current scaffold
-node --test          # run the engine tests
-
-# after the Next.js migration
-npm run dev          # local dev server
-npm run test         # vitest
+node --test          # legacy engine tests (during migration)
+npm run test         # Vitest suite
+npm run typecheck    # TypeScript check
+npm run build        # production build
+npm run dev          # local development server
 ```
 
-Requires Node 18+.
+Requires Node 20+.

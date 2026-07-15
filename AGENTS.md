@@ -25,13 +25,13 @@ These are load-bearing. Do not violate them without an explicit, recorded decisi
 - **Tests:** Vitest.
 - **Secrets:** `PUBLISH_SECRET` (organizer write gate) + KV connection vars, set in the Vercel env — never committed.
 
-> Transitional note: the repo is mid-migration from the original vanilla single-file scaffold to the Next.js stack above. Until the migration lands, some paths (`team-balancer.html`, `src/engine.mjs`, `build.mjs`) reflect the old layout. Keep the docs honest about which state we're in.
+> Transitional note: the Next.js foundation is in place, but the engine still lives in the legacy `src/engine.mjs` with its Node tests until the M2 TypeScript port lands. Keep the docs honest about which state we're in.
 
 ## 4. Making a change
 
 1. **Engine changes** go in the pure engine modules and **must ship with tests**. No new engine behavior without a test that pins it.
 2. **Run the tests** before considering a change done. They must be green.
-3. **Run the build** for anything touching the shippable output, and confirm the single-file result still opens and works offline (constraint §2).
+3. **Verify at runtime** — for anything touching runtime behavior, run the build and exercise the change in the running app (dev server or a deployed preview), not just the tests. Confirm the server stayed dumb and the engine client-side (constraint §2).
 4. **Keep docs in sync.** If a change alters a decision recorded in `docs/` or this file, update that doc in the _same_ change. Stale docs that contradict the code are worse than no docs — the Roadmap's whole ethos is "write down decisions so I don't re-litigate them."
 5. **One logical change per commit.** Don't bundle an unrelated cleanup into a feature commit.
 
@@ -44,17 +44,15 @@ These are load-bearing. Do not violate them without an explicit, recorded decisi
   scope: summary
 
   Slightly more detailed summary. No more than 50 words.
-
-  Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
   ```
-  `scope` is the change type (`feat`, `fix`, `docs`, `chore`, `refactor`, …). The body explains _why_ when it isn't obvious and stays under 50 words — granular detail belongs in the changelog, not the message. Keep the co-author trailer on agent-assisted commits.
+  `scope` is the change type (`feat`, `fix`, `docs`, `chore`, `refactor`, …). The body explains _why_ when it isn't obvious and stays under 50 words — granular detail belongs in the changelog, not the message. Add attribution only when the organizer explicitly wants it; agent assistance does not require a co-author trailer.
 - **The agent never commits or pushes.** `git commit` and `git push` are **human-only**, always. The agent may stage files and draft the message, then hands over the exact command for the organizer to run. It must not execute `git commit` or `git push` itself under any circumstances — including during the wrap-up ritual.
 
 ## 6. Before you commit — checklist
 
 - [ ] Tests pass (`vitest` / `node --test`)
 - [ ] Typecheck passes (once TS is in place)
-- [ ] Build succeeds and the single-file output still works offline
+- [ ] Build succeeds and the change works in the running app
 - [ ] Docs updated if a decision changed
 - [ ] `docs/CHANGELOG.md` updated (or deferred to the wrap-up ritual, §8)
 - [ ] No secrets, tokens, `.env`, `node_modules/`, or `dist/` staged

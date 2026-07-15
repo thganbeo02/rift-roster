@@ -9,6 +9,35 @@ Versioning convention (see `docs/agent/doc-workflow.md` §1 for the full rule). 
 
 ---
 
+## [2026-07-16] — Scaffold the hosted foundation — v0.3.0
+
+Established the Next.js host and its TypeScript/Vitest verification baseline, completing M1 of the hosted migration. Removed the retired single-file delivery wrapper while retaining the legacy engine and its tests as the behavioral source for the M2 TypeScript port.
+
+### Added
+
+- Next.js App Router shell with root metadata, placeholder home page, and minimal global styling.
+- TypeScript, Vitest, and npm project configuration with a reproducible lockfile.
+- Manual development, test, typecheck, and build commands in the code workflow and README.
+- Four-milestone hosted MVP breakdown in the Roadmap.
+
+### Changed
+
+- Runtime verification now targets the running hosted app instead of the retired offline file.
+- README and agent guidance now describe the active Next.js foundation and transitional legacy engine accurately.
+
+### Removed
+
+- `team-balancer.html` and `build.mjs`; the hosted Next.js shell now owns delivery.
+
+### Notes
+
+- `src/engine.mjs` and its six Node tests remain temporarily as the parity baseline for M2.
+- The dependency audit reports a moderate PostCSS advisory through Next.js; npm's offered forced fix is a breaking downgrade, so it is deferred pending an upstream-compatible release.
+
+| Doc | Version |
+|---|---|
+| 03-Roadmap | 1.1.0 |
+
 ## [2026-07-15] — Rewrite docs for hosted + shareable direction — v0.2.0
 
 Moved the product from a single offline HTML file toward a hosted app with a deliberately minimal snapshot backend, so the whole group can view each week's teams through a read-only link. Kept the balancing engine client-side and pure — the reversal is contained to storage, not the model. Also stood up the agent workflow: operating rules, this changelog, per-doc changelogs, and a doc-workflow module.

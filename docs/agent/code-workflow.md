@@ -35,6 +35,20 @@ Keep the dependency arrow one-way: `app → components → state → engine/lib`
 - **Green before done.** Run the suite before calling any change complete (AGENTS §6). Don't hand off red tests without flagging.
 - **The engine is where coverage matters most** — the UI can be lighter.
 
+### Manual command reference
+
+Run commands from the repository root. Until the M2 engine port moves the engine tests to Vitest, keep the legacy `node --test` suite green alongside `npm run test`.
+
+```sh
+node --test          # legacy engine tests (keep green until M2 completes)
+npm run test         # Vitest suite
+npm run typecheck    # TypeScript check without emitting files
+npm run build        # production Next.js build
+npm run dev          # local app; stop with Ctrl-C
+```
+
+After `npm run dev`, open the local URL printed by Next.js and exercise the affected flow.
+
 ## 5. Dependencies
 
 - **Don't add a runtime dependency without asking** (AGENTS §2). Reach for the platform and stdlib first; a small helper usually beats a package.

@@ -1,7 +1,8 @@
 # dependencies
 node_modules/
+.next/
 
-# build output (single-file bundle is generated, not committed)
+# build output
 dist/
 build/
 .vite/
