@@ -1,0 +1,82 @@
+// Rift Roster — Summoner Split engine
+// Pure, DOM-free. Authored here, unit-tested via `node --test`,
+// inlined into team-balancer.html by build.mjs for the single-file ship.
+// See docs/02-TDD.md for the model.
+
+// --- Data model constants -------------------------------------------------
+
+// Rank buckets. `score` is the currency the engine does math in.
+// The top jump (500 -> 650, not 600) encodes the larger Emerald->Diamond gap.
+export const RANKS = [
+  { bucket: "Iron/Bronze", score: 100 },
+  { bucket: "Silver",      score: 200 },
+  { bucket: "Gold",        score: 300 },
+  { bucket: "Platinum",    score: 400 },
+  { bucket: "Emerald",     score: 500 },
+  { bucket: "Diamond+",    score: 650 },
+];
+
+export const ROLES = ["Top", "Jungle", "Mid", "ADC", "Support"];
+
+// Outlier judgement only (not folded into the core score yet — v2).
+export const ROLE_IMPACT = {
+  Jungle: 1.3, Mid: 1.2, ADC: 1.05, Top: 1.0, Support: 0.85,
+};
+
+// Role-fit assignment costs.
+export const ROLE_COST = { main: 0, secondary: 1, off: 3 };
+
+// Tunable weights. NOTE: spreadWeight is referenced by TDD §5 but was never
+// given a value there — pinning it here (see docs review, finding #2).
+export const WEIGHTS = {
+  spreadWeight: 1,   // outer multiplier on spreadPenalty (§5b has inner 0.6/0.5)
+  roleWeight: 40,    // 0 = off, 40 = strong preference (default), 120 = near-strict
+};
+
+const clampRank = (r) => Math.max(0, Math.min(RANKS.length - 1, r | 0));
+
+// --- Effective score (TDD §3) --------------------------------------------
+
+// Raw rank adjusted by confidence-gated recent form.
+// v1.1 (peak/adjust) folded in per TDD §3; peak/adjust are optional.
+export function effScore(p, { useWR = true } = {}) {
+  // v1.1 peak blend when present, else plain rank base.
+  let base = Number.isInteger(p.peak)
+    ? 0.7 * RANKS[clampRank(p.rank)].score + 0.3 * RANKS[clampRank(p.peak)].score
+    : RANKS[clampRank(p.rank)].score;
+
+  if (useWR && p.games >= 5) {
+    const wr = p.wins / p.games;                 // 0..1
+    const conf = Math.min(1, (p.games - 5) / 15); // 0 at 5 games -> 1 at 20
+    base += (wr - 0.5) * 2 * 60 * conf;          // +/-60 max (~half a bucket)
+  }
+
+  base += (p.adjust || 0) * 100;                 // manual nudge, applied last
+  return base;
+}
+
+// --- Combinatorics --------------------------------------------------------
+
+// All k-length index combinations of [0..n-1].
+export function kCombos(n, k) {
+  const out = [];
+  const combo = [];
+  (function rec(start) {
+    if (combo.length === k) { out.push(combo.slice()); return; }
+    for (let i = start; i <= n - (k - combo.length); i++) {
+      combo.push(i); rec(i + 1); combo.pop();
+    }
+  })(0);
+  return out;
+}
+
+// --- TODO: implemented next (kept as documented stubs for the scaffold) ---
+// roleFit(team)            -> §6 assignment problem (brute-force 120 perms)
+// spreadPenalty(a, b)      -> §5b stdev-diff*0.6 + max-gap*0.5
+// scoreSplit(a, b, opts)   -> §5 rankDiff + spread + role
+// balance(players, opts)   -> §4 search over 126 splits
+//
+// NOTE for the search: the split-top-2 constraint must skip a split when the
+// two strongest players are on the SAME team — i.e. both in `combo` OR both
+// out of it. TDD §4 pseudocode only checks "both in teamA", which silently
+// fails when neither top player is index 0 (docs review, finding #1).

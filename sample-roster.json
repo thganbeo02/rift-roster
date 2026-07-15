@@ -1,0 +1,17 @@
+{
+  "players": [
+    { "name": "Ashira",  "rank": 2, "main": "Mid",     "sec": "ADC",     "wins": 12, "games": 20, "in": true },
+    { "name": "Bexlin",  "rank": 1, "main": "Support", "sec": "Top",     "wins": 8,  "games": 18, "in": true },
+    { "name": "Corvth",  "rank": 4, "main": "Jungle",  "sec": "Mid",     "wins": 15, "games": 22, "in": true },
+    { "name": "Dovern",  "rank": 3, "main": "Top",     "sec": "Jungle",  "wins": 10, "games": 19, "in": true },
+    { "name": "Ellyra",  "rank": 2, "main": "ADC",     "sec": "Support", "wins": 9,  "games": 16, "in": true },
+    { "name": "Fenwyk",  "rank": 0, "main": "Support", "sec": "Mid",     "wins": 3,  "games": 7,  "in": true },
+    { "name": "Grimsby", "rank": 5, "main": "Mid",     "sec": "ADC",     "wins": 18, "games": 24, "in": true, "peak": 5 },
+    { "name": "Halcyra", "rank": 3, "main": "Jungle",  "sec": "Top",     "wins": 11, "games": 21, "in": true },
+    { "name": "Ivorak",  "rank": 1, "main": "Top",     "sec": "Support", "wins": 6,  "games": 14, "in": true },
+    { "name": "Jaxvire", "rank": 2, "main": "ADC",     "sec": "Mid",     "wins": 10, "games": 20, "in": true },
+    { "name": "Kaelis",  "rank": 4, "main": "Mid",     "sec": "Jungle",  "wins": 13, "games": 23, "in": false },
+    { "name": "Lorwyn",  "rank": 0, "main": "Support", "sec": "ADC",     "wins": 2,  "games": 4,  "in": false }
+  ],
+  "pairs": []
+}
