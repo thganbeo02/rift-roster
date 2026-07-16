@@ -37,10 +37,9 @@ Keep the dependency arrow one-way: `app → components → state → engine/lib`
 
 ### Manual command reference
 
-Run commands from the repository root. Until the M2 engine port moves the engine tests to Vitest, keep the legacy `node --test` suite green alongside `npm run test`.
+Run commands from the repository root.
 
 ```sh
-node --test          # legacy engine tests (keep green until M2 completes)
 npm run test         # Vitest suite
 npm run typecheck    # TypeScript check without emitting files
 npm run build        # production Next.js build

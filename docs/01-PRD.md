@@ -3,7 +3,7 @@
 > **Project:** Rift Roster (balancer engine: *Summoner Split*)
 > **Author:** Zeros
 > **Status:** hosted + shareable · living doc
-> **Doc version:** 1.0.0
+> **Doc version:** 1.1.0
 > **Audience:** Personal reference
 
 ---
@@ -45,7 +45,7 @@ The hard part is still not the split itself (126 combinations, trivially brute-f
 ## 4. Scope
 
 ### Shipped (v1 — engine)
-- Roster table: name, rank bucket, main/secondary role, wins/games, in/out flag.
+- Roster table: name, rank bucket, main role, secondary roles (including fill), wins/games, in/out flag.
 - **Summoner Split** balancer: enumerates all 126 unique splits, scores each on rank difference + spread penalty + role fit, returns the best.
 - Win-rate confidence weighting (ignored under 5 games, ramps to full at 20).
 - Split-top-2 constraint (keep the two strongest on opposite teams).
@@ -98,7 +98,7 @@ The override rate is the real model-quality signal. Whether the link gets looked
 - **Read-only sharing, not multi-user.** Viewers see; only the organizer edits. This buys ~90% of the transparency value for ~10% of the complexity of real accounts. No auth for viewers, one secret for the organizer.
 - **Engine stays client-side and pure.** The interesting, tested part of the product does not live on the server. The server is dumb storage. This is what keeps the system cheap and the core reusable.
 - **Rank as 6 coarse buckets, not divisions.** Divisions (I–IV) are false precision for a casual group. Six buckets (Iron/Bronze → Diamond+) with a non-linear jump at the top (Emerald→Diamond gap is genuinely bigger) is enough resolution to balance without demanding data nobody wants to enter.
-- **Roles as strong preference, not hard lock.** Hard role-locking 10 casual players often makes teams *impossible* to form. Main = free, secondary = cheap, off-role = expensive. Tunable.
+- **Roles as strong preference, not hard lock.** Hard role-locking 10 casual players often makes teams *impossible* to form. Main = free, any listed secondary = cheap, off-role = expensive. A fill player lists every non-main role as secondary. Tunable.
 - **Win rate nudges, never overrides.** Rank is the primary signal; form is a ±half-bucket adjustment that only kicks in with enough games to be meaningful.
 - **Spread penalty over pure sum-matching.** One Master + four Silvers can sum-match five Golds but is not balanced — the Master snowballs. Penalizing internal variance and top-player gap is the core insight that makes the balancer better than a naive point-sum.
 - **JSON import/export retained even with a backend.** It's the backup format and the >10 workflow (keep everyone in one file, flip `in` flags weekly). The server holds *published* snapshots; the file holds the *working* pool.
@@ -118,4 +118,5 @@ The override rate is the real model-quality signal. Whether the link gets looked
 
 ## Changelog
 
+- **1.1.0** (2026-07-16) — Expanded role preferences to support multiple secondary roles and fill players.
 - **1.0.0** (2026-07-15) — Initial official version: hosted + shareable direction, with the Viewers user class, the read-only link as a first-class deliverable, and a deliberately minimal backend.

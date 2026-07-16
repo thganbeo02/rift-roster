@@ -9,6 +9,40 @@ Versioning convention (see `docs/agent/doc-workflow.md` §1 for the full rule). 
 
 ---
 
+## [2026-07-16] — Complete the TypeScript balancing engine — v0.4.0
+
+Completed M2 by porting the proven engine behavior to pure TypeScript and implementing the full optimal 5v5 search. The engine now scores aggregate strength, team spread, and deterministic role assignments, exposes a typed public API, and is exercised end to end against the current roster.
+
+### Added
+
+- Pure TypeScript engine modules for constants, effective score, combinations, role fit, spread penalty, split scoring, and exhaustive balance search.
+- Typed public contracts for players, options, assignments, score breakdowns, team evaluations, and balance results.
+- Correct split-top-two enforcement for strongest players sharing either Team A or Team B, with regression coverage.
+- Vitest coverage for scoring boundaries, 120-permutation role assignment, 126 unique splits, deterministic ties, validation, input immutability, and the real-roster flow.
+- Worked balance example showing the recommended teams and the full score calculation with Van Hai excluded.
+- `@/` source alias support in TypeScript and Vitest.
+
+### Changed
+
+- Player IDs are stable strings, and `secondaryRoles` is an array so fill players can express every acceptable non-main role.
+- Organizer-only availability is separated from the pure engine player contract as `RosterPlayer` in the TDD.
+- README, Roadmap, and agent workflow now treat the TypeScript engine and Vitest suite as current state; M2 is complete and M3 is next.
+
+### Removed
+
+- Legacy `src/engine.mjs` and its `node --test` suite after parity and integration coverage moved to Vitest.
+
+### Notes
+
+- The real-roster fixture keeps wins and games at zero rather than fabricating form data.
+- Van Thu and Trung Thanh use documented provisional rank assumptions until current ranks are known.
+
+| Doc | Version |
+|---|---|
+| 01-PRD | 1.1.0 |
+| 02-TDD | 1.1.0 |
+| 03-Roadmap | 1.1.1 |
+
 ## [2026-07-16] — Scaffold the hosted foundation — v0.3.0
 
 Established the Next.js host and its TypeScript/Vitest verification baseline, completing M1 of the hosted migration. Removed the retired single-file delivery wrapper while retaining the legacy engine and its tests as the behavioral source for the M2 TypeScript port.

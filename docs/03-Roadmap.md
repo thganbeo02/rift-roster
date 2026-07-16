@@ -2,7 +2,7 @@
 
 > **Author:** Zeros
 > **Status:** living doc
-> **Doc version:** 1.1.0
+> **Doc version:** 1.1.1
 > **Audience:** Personal reference
 
 Scoping principle for this project: **ship the balancer, defer everything that isn't proven annoying yet.** Features earn their way in by real friction observed during weekly use, not by being on a wishlist. The "why deferred" column is the important one — it's the record of *decisions*, so future me doesn't re-litigate them. When a decision is reversed, that goes in the [CHANGELOG](CHANGELOG.md) with its reasoning, not silently.
@@ -13,7 +13,7 @@ Scoping principle for this project: **ship the balancer, defer everything that i
 
 The working balancer. Enough to run a real weekly lobby.
 
-- Roster table: name, rank bucket, main/secondary role, wins/games, in/out flag.
+- Roster table: name, rank bucket, main role, secondary roles (including fill), wins/games, in/out flag.
 - **Summoner Split** engine: 126-split exhaustive search, optimal.
 - Scoring: rankDiff + spread penalty + role fit.
 - Win-rate confidence weighting (5-game floor, ramp to 20).
@@ -43,7 +43,7 @@ Turn the private engine into a hosted app that produces a **read-only shareable 
 
 **Explicit guardrail:** the server stores/serves snapshots and nothing else. The moment it starts running the engine, holding accounts, or editing on behalf of users, stop and re-read this line.
 
-**Milestones (the MVP path):** M1 Foundation ✅ → M2 Engine in TypeScript → M3 Organizer app → M4 Publish, view & deploy. The original scaffold had no working UI to preserve — only an empty shell and a half-built engine — so the migration drops the single-file wrapper early and ports only the proven engine logic forward. Legacy removal happens inline (the wrapper in M1, the old engine file in M2), not as a separate cutover.
+**Milestones (the MVP path):** M1 Foundation ✅ → M2 Engine in TypeScript ✅ → M3 Organizer app → M4 Publish, view & deploy. The original scaffold had no working UI to preserve — only an empty shell and a half-built engine — so the migration drops the single-file wrapper early and ports only the proven engine logic forward. Legacy removal happens inline (the wrapper in M1, the old engine file in M2), not as a separate cutover.
 
 ### ✅ M1 — Foundation
 
@@ -61,7 +61,7 @@ Scaffold the target toolchain and commit to the hosted app. M1 sets up the new h
 
 **Status:** complete.
 
-### M2 — Engine in TypeScript
+### ✅ M2 — Engine in TypeScript
 
 Bring the balancing engine into the new project as pure, framework-free TypeScript, then finish it. Port first (behavioral parity, no intentional changes), then implement the unbuilt functions one at a time — combining a language migration with new scoring logic in one step makes regressions hard to locate.
 
@@ -70,6 +70,8 @@ Bring the balancing engine into the new project as pure, framework-free TypeScri
 - Retire the legacy engine: delete `src/engine.mjs` and the `node --test` suite once Vitest covers everything.
 
 **Exit criteria:** `balance()` returns an optimal split; the full Vitest suite is green; `src/engine.mjs` and `node --test` are gone; the engine has zero React/DOM/server imports.
+
+**Status:** complete.
 
 ### M3 — Organizer app
 
@@ -151,5 +153,6 @@ The one-liner: *"A hosted team balancer for my coworkers' weekly League games th
 
 ## Changelog
 
+- **1.1.1** (2026-07-16) — Recorded M2 Engine in TypeScript as complete and aligned roster roles with the implemented schema.
 - **1.1.0** (2026-07-16) — Added the four-milestone hosted MVP path and recorded M1 Foundation as complete.
 - **1.0.0** (2026-07-15) — Initial official version: v1.5 "Hosted + shareable" as the current focus; accounts/multi-user deferred indefinitely.

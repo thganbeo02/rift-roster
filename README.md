@@ -18,7 +18,7 @@ A hosted app with a deliberately minimal backend — the interesting part (the e
 
 ## Status
 
-**Mid-migration.** The Next.js host and TypeScript/Vitest toolchain are scaffolded, and the retired single-file delivery wrapper is gone. The engine still lives in `src/engine.mjs` with its Node tests; porting it to TypeScript is next. The organizer UI, publish API, and read-only view remain Roadmap v1.5 work.
+**Mid-migration.** The Next.js foundation and pure TypeScript Summoner Split engine are in place, with exhaustive balancing covered by Vitest. The organizer UI is next; the publish API and read-only view remain Roadmap v1.5 work.
 
 ## Layout (target)
 
@@ -35,7 +35,6 @@ docs/                PRD · TDD · Roadmap
 ## Develop
 
 ```sh
-node --test          # legacy engine tests (during migration)
 npm run test         # Vitest suite
 npm run typecheck    # TypeScript check
 npm run build        # production build

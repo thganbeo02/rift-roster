@@ -25,8 +25,6 @@ These are load-bearing. Do not violate them without an explicit, recorded decisi
 - **Tests:** Vitest.
 - **Secrets:** `PUBLISH_SECRET` (organizer write gate) + KV connection vars, set in the Vercel env — never committed.
 
-> Transitional note: the Next.js foundation is in place, but the engine still lives in the legacy `src/engine.mjs` with its Node tests until the M2 TypeScript port lands. Keep the docs honest about which state we're in.
-
 ## 4. Making a change
 
 1. **Engine changes** go in the pure engine modules and **must ship with tests**. No new engine behavior without a test that pins it.
@@ -50,7 +48,7 @@ These are load-bearing. Do not violate them without an explicit, recorded decisi
 
 ## 6. Before you commit — checklist
 
-- [ ] Tests pass (`vitest` / `node --test`)
+- [ ] Tests pass (`npm run test`)
 - [ ] Typecheck passes (once TS is in place)
 - [ ] Build succeeds and the change works in the running app
 - [ ] Docs updated if a decision changed

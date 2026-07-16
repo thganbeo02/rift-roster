@@ -3,7 +3,7 @@
 > **Component:** *Summoner Split* balancing engine + hosted host UI + snapshot backend
 > **Author:** Zeros
 > **Status:** describes the hosted, shareable architecture; flags v1.1 additions inline
-> **Doc version:** 1.0.0
+> **Doc version:** 1.1.0
 > **Audience:** Personal reference (future me)
 
 ---
@@ -52,23 +52,29 @@ Rift Roster is a **hosted Next.js application on Vercel**. The shape is delibera
 ## 2. Data model
 
 ```ts
+type RankIndex = 0 | 1 | 2 | 3 | 4 | 5;
+type Role = "Top" | "Jungle" | "Mid" | "ADC" | "Support";
+
 type Player = {
-  id: number;         // runtime only, not exported/published
+  id: string;         // stable across UI state and JSON import/export
   name: string;
-  rank: 0..5;         // bucket index
-  main: Role;
-  sec: Role;
+  rank: RankIndex;    // bucket index
+  mainRole: Role;
+  secondaryRoles: Role[]; // one or more; all non-main roles means "fill"
   wins: number;       // this split
   games: number;      // this split
-  in: boolean;        // playing this week
   // v1.1:
-  peak?: 0..5;        // peak rank bucket
+  peak?: RankIndex;   // peak rank bucket
   adjust?: number;    // manual bucket nudge, e.g. -1..+2
-  lastSatOut?: number;// week index, for rotation (v2)
 };
 
-type Role = "Top" | "Jungle" | "Mid" | "ADC" | "Support";
+type RosterPlayer = Player & {
+  in: boolean;         // playing this week
+  lastSatOut?: number; // week index, for rotation (v2)
+};
 ```
+
+The engine consumes `Player`; organizer-only availability extends it as `RosterPlayer` in the client state layer. String IDs survive import/export without relying on array position. `secondaryRoles` is an array because real rosters include fill players; any listed secondary costs 1 in role assignment, while an unlisted role costs 3.
 
 **Rank buckets** (score is the currency the engine does math in):
 
@@ -166,6 +172,8 @@ score(teamA, teamB) = rankDiff
 
 Lower is better. **Weights:** `spreadWeight = 1` (outer multiplier), `roleWeight ∈ {0 off, 40 strong-preference [default], 120 near-strict}`. The two sub-term weights in §5b (0.6 / 0.5) carry the spread term's internal scaling, so `spreadWeight` is unity unless there's a reason to dial the whole term up or down.
 
+See the [worked real-roster balance example](examples/real-roster-balance.md) for a complete split and a step-by-step interpretation of each score term.
+
 The three terms and why each exists:
 
 ### 5a. rankDiff — aggregate fairness
@@ -193,7 +201,7 @@ Sum of role-fit penalty for both teams (§6), scaled by `roleWeight`. Keeps five
 
 For a team of 5, find the cheapest assignment of players → the 5 distinct roles.
 
-- Cost: main role = 0, secondary = 1, off-role = 3.
+- Cost: main role = 0, any listed secondary role = 1, off-role = 3.
 - 5×5 assignment → Hungarian algorithm is the "correct" tool, but **120 permutations** is nothing, so brute-force all permutations and take the min. Simpler code, same answer.
 
 ```
@@ -288,4 +296,5 @@ The bar is "sensible for a private friend group," not "public multi-tenant SaaS.
 
 ## Changelog
 
+- **1.1.0** (2026-07-16) — Aligned the player schema with the TypeScript engine, documented multiple secondary roles, and linked a worked scoring example.
 - **1.0.0** (2026-07-15) — Initial official version: hosted architecture with a minimal snapshot backend (§1, §8), hosting/deployment (§9), and security/privacy (§11). Includes the corrected split-top-2 logic (§4) and the pinned `spreadWeight` (§5).
