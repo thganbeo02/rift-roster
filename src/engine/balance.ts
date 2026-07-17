@@ -51,13 +51,20 @@ function topPlayersShareTeam(
 
 export function balance(
   players: readonly Player[],
+  options: BalanceOptions = {},
+): BalanceResult {
+  return rankBalanceCandidates(players, options)[0];
+}
+
+export function rankBalanceCandidates(
+  players: readonly Player[],
   {
     useWinRate = true,
     splitTopTwo = true,
     spreadWeight,
     roleWeight,
   }: BalanceOptions = {},
-): BalanceResult {
+): BalanceResult[] {
   validatePlayers(players);
 
   const [topOneIndex, topTwoIndex] = strongestPlayerIndices(
@@ -65,8 +72,7 @@ export function balance(
     useWinRate,
   );
 
-  let bestSplit: SplitEvaluation | undefined;
-  let evaluatedSplits = 0;
+  const candidates: SplitEvaluation[] = [];
 
   for (const combination of kCombos(PLAYER_COUNT, TEAM_SIZE)) {
     // Team A must contain index 0, removing mirrored duplicates.
@@ -100,23 +106,18 @@ export function balance(
       roleWeight,
     });
 
-    evaluatedSplits += 1;
-
-    // Strictly less preserves the first result when totals tie.
-    if (
-      bestSplit === undefined ||
-      evaluated.score.total < bestSplit.score.total
-    ) {
-      bestSplit = evaluated;
-    }
+    candidates.push(evaluated);
   }
 
-  if (bestSplit === undefined) {
+  if (candidates.length === 0) {
     throw new Error("balance could not find a valid split");
   }
 
-  return {
-    ...bestSplit,
-    evaluatedSplits,
-  };
+  // Array.sort is stable, preserving combination order when totals tie.
+  candidates.sort((a, b) => a.score.total - b.score.total);
+
+  return candidates.map((candidate) => ({
+    ...candidate,
+    evaluatedSplits: candidates.length,
+  }));
 }

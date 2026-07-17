@@ -3,7 +3,7 @@
 > **Project:** Rift Roster (balancer engine: *Summoner Split*)
 > **Author:** Zeros
 > **Status:** hosted + shareable · living doc
-> **Doc version:** 1.1.0
+> **Doc version:** 1.2.0
 > **Audience:** Personal reference
 
 ---
@@ -59,6 +59,7 @@ The hard part is still not the split itself (126 combinations, trivially brute-f
 - **Publish:** organizer publishes a snapshot (roster + generated teams + verdict) and gets a stable shareable link `/v/<slug>`.
 - **Read-only view:** anyone with the link sees the published roster and teams, rendered read-only. No editing, no engine re-run, no login.
 - **Organizer working persistence:** localStorage for the in-progress roster, plus JSON import/export retained for backup and the >10 file-swap workflow.
+- **Fresh repeat balancing:** remember recent splits for the same 10-player cohort and choose a different near-optimal arrangement on later balances/rebalances.
 - **Minimal write protection:** a single organizer publish secret gates writes; no user/account system.
 
 ### In scope (v1.1 — still planned, see Roadmap)
@@ -102,6 +103,7 @@ The override rate is the real model-quality signal. Whether the link gets looked
 - **Win rate nudges, never overrides.** Rank is the primary signal; form is a ±half-bucket adjustment that only kicks in with enough games to be meaningful.
 - **Spread penalty over pure sum-matching.** One Master + four Silvers can sum-match five Golds but is not balanced — the Master snowballs. Penalizing internal variance and top-player gap is the core insight that makes the balancer better than a naive point-sum.
 - **JSON import/export retained even with a backend.** It's the backup format and the >10 workflow (keep everyone in one file, flip `in` flags weekly). The server holds *published* snapshots; the file holds the *working* pool.
+- **Near-optimal variety over one frozen answer.** The mathematical optimum stays available, but the organizer chooses among candidates within a small quality guardrail and remembers recent splits for the same cohort. Weekly repeats and Rebalance therefore create fresh teams without accepting additional off-role assignments.
 
 ---
 
@@ -118,5 +120,6 @@ The override rate is the real model-quality signal. Whether the link gets looked
 
 ## Changelog
 
+- **1.2.0** (2026-07-17) — Added fresh repeat balancing as an organizer requirement and recorded the near-optimal variety decision.
 - **1.1.0** (2026-07-16) — Expanded role preferences to support multiple secondary roles and fill players.
 - **1.0.0** (2026-07-15) — Initial official version: hosted + shareable direction, with the Viewers user class, the read-only link as a first-class deliverable, and a deliberately minimal backend.

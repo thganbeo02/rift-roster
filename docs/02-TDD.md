@@ -3,7 +3,7 @@
 > **Component:** *Summoner Split* balancing engine + hosted host UI + snapshot backend
 > **Author:** Zeros
 > **Status:** describes the hosted, shareable architecture; flags v1.1 additions inline
-> **Doc version:** 1.1.0
+> **Doc version:** 1.2.0
 > **Audience:** Personal reference (future me)
 
 ---
@@ -69,8 +69,9 @@ type Player = {
 };
 
 type RosterPlayer = Player & {
-  in: boolean;         // playing this week
-  lastSatOut?: number; // week index, for rotation (v2)
+  in: boolean;                          // playing this week
+  source: "manual" | "generated";      // admin-test provenance
+  lastSatOut?: number;                  // week index, for rotation (v2)
 };
 ```
 
@@ -160,6 +161,12 @@ The split-top-2 test is "both strongest on the same team," which — because the
 
 Total cost per balance: 126 splits × (2 role-fit solves + a few reductions). Role-fit is the most expensive inner op (§6) and it's still 120 permutations of trivial arithmetic. Whole thing is sub-100ms.
 
+### 4a. Ranked candidates and fresh repeat balancing
+
+`rankBalanceCandidates()` returns every valid split ordered by total cost; `balance()` remains the compatible deterministic API and returns the first (optimal) candidate. Variety is a client-state policy, not hidden randomness inside the engine.
+
+For Balance/Rebalance, the organizer app builds a near-optimal pool whose cost is at most 100 above optimal and whose off-role count does not exceed the optimum. It randomly selects an unused candidate, then stores a canonical split signature in `localStorage`, keyed by the sorted IDs of the exact 10-player cohort. Team color and player order do not affect the signature. The last eight signatures are avoided; when the eligible pool is exhausted, history cycles.
+
 ---
 
 ## 5. Scoring function — the three terms
@@ -195,6 +202,10 @@ This is the term that makes Summoner Split better than a naive point-sum balance
 ### 5c. rolePenalty — playable comps
 Sum of role-fit penalty for both teams (§6), scaled by `roleWeight`. Keeps five mid-mains from landing on one team with nobody who'll jungle. Note the magnitude interaction: at the default `roleWeight = 40`, a single off-role assignment (cost 3) contributes 120 — more than a full rank bucket (100). That's intentional "strong preference," but it's the knob to watch if role fit starts overriding rank balance (see §10).
 
+### 5d. Human-facing balance meter
+
+The results UI derives a 0–100 balance score and model-estimate win shares from the effective-score delta using one tunable logistic scale. This is a presentation helper in `src/lib/`, not part of candidate scoring, and its language remains explicitly a model estimate because no outcome dataset exists for calibration. Rank gap, spread, and total cost stay visible separately.
+
 ---
 
 ## 6. Role fit as an assignment problem
@@ -220,7 +231,7 @@ Returned assignment drives the role badges in results (amber = off-preferred).
 ## 7. Modes & constraints
 
 - **Split-top-2** — before scoring, skip any split where the two highest-effScore players are on the same team (§4 corrected logic). Cheap, prevents the worst blowouts.
-- **Fun mode** — bypasses the entire engine; `players.sort(random)`, first 5 vs last 5. For ARAM nights where balance doesn't matter.
+- **Fun mode** — bypasses the entire engine; a pure Fisher–Yates helper copies and shuffles the 10 selected players, then returns the first 5 vs. last 5. Its RNG is injected for tests, and the UI deliberately shows no balance metrics.
 - **Pairs (v1.1)** — `together`/`apart` relationships become hard filters in the search loop (skip violating splits). Clean because we already enumerate exhaustively; constraints just prune the space.
 
 ---
@@ -231,9 +242,9 @@ There are now **two** kinds of state, and keeping them separate is the whole des
 
 **A. Organizer working state (client-only).**
 - Lives in `players[]` in memory, mirrored to `localStorage` so a refresh doesn't lose the in-progress roster.
-- JSON import/export retained: export strips runtime `id`, pretty-prints; import parses, clamps `rank`/`peak` into range, validates roles against the enum (falls back to Top/Jungle), defaults `in` to true. Forgiving by design.
+- JSON import/export retained: export keeps stable IDs and pretty-prints `{players:[...]}`; import also accepts a legacy bare array, clamps `rank`/`peak`, validates and deduplicates roles, repairs missing/duplicate IDs, and defaults flags safely. Invalid files never replace the current roster.
 - **>10 players:** keep the whole pool in one file/localStorage, toggle `in` per week. Engine only considers `in:true` and refuses to run unless exactly 10 are in.
-- Working schema is `{ players:[...], pairs:[...] }`. Importer accepts a bare array too (treat as `players` with empty `pairs`) for backward compatibility.
+- Working schema is `{players:[...]}`. The v1.1 pairs feature will extend it to `{players, pairs}` while keeping bare-array imports backward compatible.
 
 **B. Published snapshots (server KV).**
 A snapshot is an immutable-ish record of a balanced result, created on Publish and read by the view link.
@@ -296,5 +307,6 @@ The bar is "sensible for a private friend group," not "public multi-tenant SaaS.
 
 ## Changelog
 
+- **1.2.0** (2026-07-17) — Documented ranked fresh-split selection, balance presentation, tested ARAM shuffle, organizer provenance, and stable-ID JSON transfer delivered with M3.
 - **1.1.0** (2026-07-16) — Aligned the player schema with the TypeScript engine, documented multiple secondary roles, and linked a worked scoring example.
 - **1.0.0** (2026-07-15) — Initial official version: hosted architecture with a minimal snapshot backend (§1, §8), hosting/deployment (§9), and security/privacy (§11). Includes the corrected split-top-2 logic (§4) and the pinned `spreadWeight` (§5).

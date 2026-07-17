@@ -9,6 +9,36 @@ Versioning convention (see `docs/agent/doc-workflow.md` §1 for the full rule). 
 
 ---
 
+## [2026-07-17] — Complete the organizer app — v0.5.0
+
+Completed M3 with an entirely client-side organizer workflow: build and persist a player pool, select the week's ten players, generate fresh near-optimal teams, inspect or copy the result, transfer roster JSON, and run an unscored ARAM shuffle. Added developer tools for quickly exercising roster and storage states.
+
+### Added
+
+- Hextech-themed organizer console with player creation and deletion, weekly in/out selection, Fill support, and localStorage persistence.
+- Balanced-team results with assigned roles, a human-readable balance meter, model-estimate language, clipboard output, visible errors, and stale-result handling.
+- Formatted JSON export plus safe import of the current object shape and legacy bare arrays without replacing the roster on validation failure.
+- Pure, injected-randomness ARAM shuffle for exactly ten selected players, presented as simple numbered team lists without balance scores.
+- Draft Settings admin tools for generated players, scenario presets, selection controls, and storage inspection.
+- Unit coverage for roster state, persistence, transfer, balance history, admin scenarios, ARAM shuffling, balance presentation, and candidate ranking.
+
+### Changed
+
+- The UI chooses among near-optimal engine candidates and avoids recently used split signatures for the same player cohort, so Balance and Rebalance can produce fresh teams without accepting extra off-role assignments.
+- JSON exports retain stable player IDs so round trips preserve roster identity and balance history.
+- README, PRD, TDD, and Roadmap now describe M3 as complete and M4 publishing as the next milestone.
+
+### Notes
+
+- Editing an existing manual player and editing wins/games after creation remain intentionally deferred.
+- The balancing engine and organizer working state remain in the browser; no backend behavior was added.
+
+| Doc | Version |
+|---|---|
+| 01-PRD | 1.2.0 |
+| 02-TDD | 1.2.0 |
+| 03-Roadmap | 1.2.0 |
+
 ## [2026-07-16] — Complete the TypeScript balancing engine — v0.4.0
 
 Completed M2 by porting the proven engine behavior to pure TypeScript and implementing the full optimal 5v5 search. The engine now scores aggregate strength, team spread, and deterministic role assignments, exposes a typed public API, and is exercised end to end against the current roster.

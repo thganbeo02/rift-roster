@@ -18,7 +18,7 @@ A hosted app with a deliberately minimal backend — the interesting part (the e
 
 ## Status
 
-**Mid-migration.** The Next.js foundation and pure TypeScript Summoner Split engine are in place, with exhaustive balancing covered by Vitest. The organizer UI is next; the publish API and read-only view remain Roadmap v1.5 work.
+**M3 organizer app complete.** The browser now owns roster persistence, JSON backup/restore, fresh near-optimal balancing, results, and ARAM shuffle. The publish API, read-only view, and deployment remain M4 work.
 
 ## Layout (target)
 
@@ -27,7 +27,8 @@ src/
   engine/            Summoner Split engine — pure, framework-free, tested
   app/               Next.js routes: organizer UI, /api/publish, /v/[slug] view
   components/        React UI (roster table, controls, results, meter)
-  state/             roster store + localStorage sync
+  lib/               framework-free presentation and shuffle helpers
+  state/             roster state, persistence, transfer, and split history
 test/                Vitest engine tests
 docs/                PRD · TDD · Roadmap
 ```

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { balance } from "@/engine/balance";
+import { balance, rankBalanceCandidates } from "@/engine/balance";
 import type { Player, RankIndex } from "@/engine/types";
 import { makePlayer } from "../fixtures/make-player";
 
@@ -134,6 +134,25 @@ describe("balance", () => {
       "p8",
       "p9",
     ]);
+  });
+
+  it("returns every valid candidate ranked by total cost", () => {
+    const candidates = rankBalanceCandidates(makeRoster(), {
+      splitTopTwo: false,
+    });
+
+    expect(candidates).toHaveLength(126);
+    expect(
+      candidates.every(
+        (candidate, index) =>
+          index === 0 ||
+          candidates[index - 1].score.total <= candidate.score.total,
+      ),
+    ).toBe(true);
+    expect(candidates.every((candidate) => candidate.evaluatedSplits === 126)).toBe(
+      true,
+    );
+    expect(balance(makeRoster(), { splitTopTwo: false })).toEqual(candidates[0]);
   });
 
   it("returns two complete teams without duplicate players", () => {
