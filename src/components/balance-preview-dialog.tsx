@@ -11,7 +11,9 @@ import {
 import {
   effScore,
   RANKS,
+  ROLES,
   type BalanceResult,
+  type RoleAssignment,
   type RolePreference,
   type TeamEvaluation,
 } from "@/engine";
@@ -35,6 +37,14 @@ function preferenceLabel(preference: RolePreference): string {
     case "off":
       return "Off-role";
   }
+}
+
+function orderedAssignments(
+  assignments: readonly RoleAssignment[],
+): RoleAssignment[] {
+  return [...assignments].sort(
+    (left, right) => ROLES.indexOf(left.role) - ROLES.indexOf(right.role),
+  );
 }
 
 function PreviewTeam({
@@ -79,7 +89,7 @@ function PreviewTeam({
         <span>Role-fit</span>
       </div>
       <ol>
-        {team.roleFit.assignments.map((assignment, index) => (
+        {orderedAssignments(team.roleFit.assignments).map((assignment, index) => (
           <li key={assignment.player.id}>
             <span>{String(index + 1).padStart(2, "0")}</span>
             <strong>{assignment.player.name}</strong>
@@ -173,7 +183,7 @@ function matchupSummary(
 }
 
 function teamText(name: string, team: TeamEvaluation): string {
-  const assignments = team.roleFit.assignments.map(
+  const assignments = orderedAssignments(team.roleFit.assignments).map(
     (assignment) => `${assignment.role}: ${assignment.player.name}`,
   );
   return `${name}\n${assignments.join("\n")}`;
@@ -370,8 +380,12 @@ export function BalancePreviewDialog({
           <button type="button" onClick={onRebalance}>
             Rebalance
           </button>
-          <button type="button" onClick={closeDialog}>
-            Start Over
+          <button
+            type="button"
+            disabled
+            title="Save and sharing will be enabled when publishing is connected."
+          >
+            Save Team
           </button>
         </footer>
       </div>

@@ -9,6 +9,41 @@ Versioning convention (see `docs/agent/doc-workflow.md` §1 for the full rule). 
 
 ---
 
+## [2026-07-18] — Plan the match journal and Riot result loop — v0.6.0
+
+Expanded Rift Roster from one-off team sharing into a staged match journal: save the accepted plan, preserve it in organizer history, and later attach a human-confirmed Riot result. The engine remains pure and client-side; the backend gains only the bounded persistence and protected post-game lookup responsibilities required by that workflow.
+
+### Added
+
+- Framework-free rendered-plan contract, serializer, and strict runtime validation that excludes raw wins/games, player IDs, engine internals, and unknown fields.
+- Cryptographically secure nine-character URL-safe report slug generation and shared validation, with deterministic unit seams.
+- Keyboard-accessible player-row context menu with disabled Edit and confirmed Delete actions.
+- Planned M5 organizer history with immutable plans, awaiting-result/completed states, full match reports, share links, and player reuse.
+- Planned M6 Riot integration using organizer-only Riot IDs/PUUIDs, server-side Account-V1 and Match-V5 calls, candidate matching, manual match-ID fallback, and explicit confirmation.
+- Security and privacy boundaries for `RIOT_API_KEY`, PUUIDs, public reports, rate-limit handling, and fixture-only adapter tests.
+
+### Changed
+
+- Balanced-team rows and copied team text now follow Top → Jungle → Mid → ADC → Support order.
+- Removed the Player Pool Actions column; row actions open by right-click, Shift+F10, or the context-menu key.
+- Replaced the results modal's Start Over action with a disabled Save Team placeholder pending the M4 save API.
+- M4 now saves each accepted split as a distinct planned match/report instead of overwriting one stable weekly snapshot.
+- The backend boundary now permits planned-match persistence, organizer history operations, and explicit server-side Riot result synchronization; balancing still never runs on the server.
+- Riot integration is scoped to post-game outcomes. Rank and model inputs remain manually maintained by the organizer.
+- README and agent workflow now describe the match-journal architecture and its bounded server responsibilities.
+
+### Notes
+
+- Save Team is intentionally disabled until storage and the organizer-gated save endpoint exist; the UI does not claim an unsaved result is durable.
+- Match-V5 coverage for the group's actual custom-game setup and region must be proven with real games before automatic candidate matching ships.
+- Development Riot keys expire and are not a deployment strategy; the deployed audience must use the key type and disclosures approved through the Riot Developer Portal.
+
+| Doc | Version |
+|---|---|
+| 01-PRD | 2.0.0 |
+| 02-TDD | 2.0.0 |
+| 03-Roadmap | 1.3.0 |
+
 ## [2026-07-17] — Complete the organizer app — v0.5.0
 
 Completed M3 with an entirely client-side organizer workflow: build and persist a player pool, select the week's ten players, generate fresh near-optimal teams, inspect or copy the result, transfer roster JSON, and run an unscored ARAM shuffle. Added developer tools for quickly exercising roster and storage states.

@@ -10,7 +10,7 @@ Task module for writing, refactoring, or fixing app code. AGENTS.md routes here;
 - `src/components/` — React UI. Presentational where possible; lift state to hooks/stores.
 - `src/app/` — Next.js routes, including `/api/*` handlers and the `/v/[slug]` view.
 - `src/state/` — hooks and stores (roster, localStorage sync).
-- `src/lib/` — small framework-free helpers (formatting, slug, snapshot serialization).
+- `src/lib/` — small framework-free helpers (formatting, slug, report serialization).
 - `test/` — Vitest specs.
 
 Keep the dependency arrow one-way: `app → components → state → engine/lib`. The engine never imports upward.
@@ -57,4 +57,4 @@ After `npm run dev`, open the local URL printed by Next.js and exercise the affe
 
 - Typecheck and tests pass.
 - No secrets or machine-specific config in code — those live in env (AGENTS §7).
-- The server stayed dumb: no engine on the server, no accounts, snapshot storage only (AGENTS §2).
+- The engine stayed client-side, no accounts were added, and server behavior stayed within persistence/reporting plus explicit server-side Riot result sync (AGENTS §2).

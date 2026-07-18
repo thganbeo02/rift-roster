@@ -7,6 +7,7 @@ import {
   useState,
   type ChangeEvent,
   type FormEvent,
+  type KeyboardEvent,
   type MouseEvent,
 } from "react";
 
@@ -117,12 +118,12 @@ function PlayerRow({
   player,
   position,
   toggleAvailability,
-  removePlayer,
+  openPlayerMenu,
 }: Readonly<{
   player: RosterPlayer;
   position: number;
   toggleAvailability: (id: string) => void;
-  removePlayer: (player: RosterPlayer) => void;
+  openPlayerMenu: (player: RosterPlayer, x: number, y: number) => void;
 }>) {
   const secondaries = player.secondaryRoles.length
     ? player.secondaryRoles.length === ROLES.length - 1 &&
@@ -131,8 +132,29 @@ function PlayerRow({
       : player.secondaryRoles.join(", ")
     : "—";
 
+  function openFromPointer(event: MouseEvent<HTMLLIElement>) {
+    event.preventDefault();
+    openPlayerMenu(player, event.clientX, event.clientY);
+  }
+
+  function openFromKeyboard(event: KeyboardEvent<HTMLLIElement>) {
+    if (
+      (event.shiftKey && event.key === "F10") ||
+      event.key === "ContextMenu"
+    ) {
+      event.preventDefault();
+      const bounds = event.currentTarget.getBoundingClientRect();
+      openPlayerMenu(player, bounds.left + bounds.width / 2, bounds.top + 12);
+    }
+  }
+
   return (
-    <li className="player-row">
+    <li
+      className="player-row"
+      tabIndex={0}
+      onContextMenu={openFromPointer}
+      onKeyDown={openFromKeyboard}
+    >
       <label className="player-selection">
         <input
           type="checkbox"
@@ -160,17 +182,15 @@ function PlayerRow({
       <span className={`status-badge${player.in ? " is-in" : ""}`}>
         {player.in ? "In" : "Out"}
       </span>
-      <button
-        className="delete-player"
-        type="button"
-        aria-label={`Delete ${player.name}`}
-        onClick={() => removePlayer(player)}
-      >
-        Delete
-      </button>
     </li>
   );
 }
+
+type PlayerMenu = {
+  player: RosterPlayer;
+  x: number;
+  y: number;
+};
 
 export function RosterEditor() {
   const [roster, dispatch] = useReducer(rosterReducer, []);
@@ -191,6 +211,7 @@ export function RosterEditor() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
   const [transferMessage, setTransferMessage] = useState<string | null>(null);
+  const [playerMenu, setPlayerMenu] = useState<PlayerMenu | null>(null);
   const playingCount = roster.filter((player) => player.in).length;
   const generatedCount = roster.filter(
     (player) => player.source === "generated",
@@ -227,7 +248,32 @@ export function RosterEditor() {
     setShowBalancePreview(false);
     setBalanceResult(null);
     setAramTeams(null);
+    setPlayerMenu(null);
   }, [roster]);
+
+  useEffect(() => {
+    if (!playerMenu) return;
+
+    function closePlayerMenu() {
+      setPlayerMenu(null);
+    }
+
+    function closePlayerMenuFromKey(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") closePlayerMenu();
+    }
+
+    window.addEventListener("pointerdown", closePlayerMenu);
+    window.addEventListener("blur", closePlayerMenu);
+    window.addEventListener("scroll", closePlayerMenu, true);
+    window.addEventListener("keydown", closePlayerMenuFromKey);
+
+    return () => {
+      window.removeEventListener("pointerdown", closePlayerMenu);
+      window.removeEventListener("blur", closePlayerMenu);
+      window.removeEventListener("scroll", closePlayerMenu, true);
+      window.removeEventListener("keydown", closePlayerMenuFromKey);
+    };
+  }, [playerMenu]);
 
   function openDialog() {
     setDraft(EMPTY_DRAFT);
@@ -375,6 +421,24 @@ export function RosterEditor() {
     }
 
     dispatch({ type: "remove", id: player.id });
+  }
+
+  function openPlayerMenu(player: RosterPlayer, x: number, y: number) {
+    const menuWidth = 144;
+    const menuHeight = 96;
+    const viewportPadding = 8;
+
+    setPlayerMenu({
+      player,
+      x: Math.max(
+        viewportPadding,
+        Math.min(x, window.innerWidth - menuWidth - viewportPadding),
+      ),
+      y: Math.max(
+        viewportPadding,
+        Math.min(y, window.innerHeight - menuHeight - viewportPadding),
+      ),
+    });
   }
 
   function downloadRoster() {
@@ -634,7 +698,6 @@ export function RosterEditor() {
                   <span>Secondary</span>
                   <span>Record</span>
                   <span>Status</span>
-                  <span>Actions</span>
                 </div>
                 <ol className="roster-list">
                   {roster.map((player, index) => (
@@ -645,10 +708,34 @@ export function RosterEditor() {
                       toggleAvailability={(id) =>
                         dispatch({ type: "toggle-availability", id })
                       }
-                      removePlayer={removePlayer}
+                      openPlayerMenu={openPlayerMenu}
                     />
                   ))}
                 </ol>
+                {playerMenu ? (
+                  <div
+                    className="player-context-menu"
+                    role="menu"
+                    aria-label={`Actions for ${playerMenu.player.name}`}
+                    style={{ left: playerMenu.x, top: playerMenu.y }}
+                    onPointerDown={(event) => event.stopPropagation()}
+                  >
+                    <button type="button" role="menuitem" disabled>
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        const selectedPlayer = playerMenu.player;
+                        setPlayerMenu(null);
+                        removePlayer(selectedPlayer);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                ) : null}
               </div>
             )}
           </section>

@@ -12,24 +12,24 @@ Rift Roster is a team balancer for a casual League of Legends group — given 10
 
 These are load-bearing. Do not violate them without an explicit, recorded decision:
 
-- **Hosted web app; the engine stays client-side.** The balancing engine runs in the browser and is framework-free. The server does exactly one thing: store and serve published read-only snapshots. It must never run the engine, hold user accounts, or edit on a user's behalf. (See PRD §6, TDD §1.) _This reverses the original "single offline file, no backend" constraint — see PRD §4 (Not a goal) and [CHANGELOG](docs/CHANGELOG.md) for why._
+- **Hosted web app; the engine stays client-side.** The balancing engine runs in the browser and is framework-free. The server stores planned-match records, serves read-only reports, and—only on an explicit organizer action—proxies post-game result lookups to Riot with a server-held API key. It must never run the engine, hold user accounts, or rebalance/edit a plan on a user's behalf. (See PRD §6, TDD §1.)
 - **Read-only sharing, not multi-user.** One organizer edits; everyone else views via a link. No player accounts, no self-service editing. Adding auth/accounts is out of scope and would be a different project.
 - **The engine stays pure.** All balancing logic lives in framework-free modules with zero DOM/React/server imports, so it stays testable in isolation and survives any UI rewrite. The UI _consumes_ the engine; the engine never reaches into the UI or the server.
-- **Minimal dependencies and minimal backend.** Every runtime dependency and every byte of server logic is a liability. Do not add a dependency or expand the server's role without asking first. Dev-only tooling (test runner, bundler) is fine within reason.
+- **Minimal dependencies and bounded backend.** Every runtime dependency and every byte of server logic is a liability. Server behavior is limited to planned-match persistence, read-only reports, organizer-gated history operations, and server-side Riot result synchronization. Do not expand that role without asking first. Dev-only tooling (test runner, bundler) is fine within reason.
 
 ## 3. Tech stack (target)
 
 - **Host/UI:** Next.js (App Router) + React + TypeScript, deployed on Vercel (`git push` to deploy).
 - **Engine:** pure TypeScript in `src/engine/`, framework-free.
-- **Storage:** KV store (Vercel KV / Upstash) for published snapshots, keyed by slug. No relational schema.
+- **Storage:** KV store (Vercel KV / Upstash) for planned-match records, public report snapshots, and the organizer's match index. No relational schema.
 - **Tests:** Vitest.
-- **Secrets:** `PUBLISH_SECRET` (organizer write gate) + KV connection vars, set in the Vercel env — never committed.
+- **Secrets:** `PUBLISH_SECRET` (organizer write/sync gate), `RIOT_API_KEY` (post-game result lookup), and KV connection vars, set in the Vercel env — never committed or exposed to the browser.
 
 ## 4. Making a change
 
 1. **Engine changes** go in the pure engine modules and **must ship with tests**. No new engine behavior without a test that pins it.
 2. **Run the tests** before considering a change done. They must be green.
-3. **Verify at runtime** — for anything touching runtime behavior, run the build and exercise the change in the running app (dev server or a deployed preview), not just the tests. Confirm the server stayed dumb and the engine client-side (constraint §2).
+3. **Verify at runtime** — for anything touching runtime behavior, run the build and exercise the change in the running app (dev server or a deployed preview), not just the tests. Confirm the engine stayed client-side and server behavior stayed within constraint §2.
 4. **Keep docs in sync.** If a change alters a decision recorded in `docs/` or this file, update that doc in the _same_ change. Stale docs that contradict the code are worse than no docs — the Roadmap's whole ethos is "write down decisions so I don't re-litigate them."
 5. **One logical change per commit.** Don't bundle an unrelated cleanup into a feature commit.
 
@@ -57,7 +57,8 @@ These are load-bearing. Do not violate them without an explicit, recorded decisi
 
 ## 7. Never do
 
-- Add a backend, account system, or runtime network call (kills the tool's premise).
+- Add player accounts, move balancing onto the server, or add a runtime network call outside the app's own storage and the explicit server-side Riot result-sync flow.
+- Expose `RIOT_API_KEY` to client code, logs, public reports, or stored browser state.
 - Commit secrets, tokens, or credentials — ever. If one is needed, it's provided at runtime, never in the repo.
 - Commit generated artifacts (`dist/`, `node_modules/`) — they're gitignored; keep it that way.
 - Force-push shared branches or rewrite `main`'s history.
